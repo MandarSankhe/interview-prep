@@ -26,18 +26,23 @@ const Speech = () => {
     formData.append("file", recordedBlob.blob);
 
     try {
-      const result = await fetch("https://api-inference.huggingface.co/models/YOUR_MODEL_NAME", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer YOUR_HUGGINGFACE_API_KEY`,
-        },
-        body: formData,
-      });
+        const result = await fetch("http://localhost:4000/api/speech-to-text", {
+            method: "POST",
+            body: formData,
+        });
 
       const data = await result.json();
-      setResponse(data.text); // Assuming the API returns a text response
+
+      if (data.text) {
+        // Assuming `data.text` contains the ASR result
+        console.log("data ", data);
+        setResponse(data.text);
+      } else {
+        setResponse("Unable to evaluate speech. Please try again.");
+      }
     } catch (error) {
       console.error("Error processing speech:", error);
+      setResponse("Error processing the audio file.");
     }
   };
 
@@ -58,7 +63,7 @@ const Speech = () => {
           onData={onData}
           strokeColor="#000000"
           backgroundColor="#FF4081"
-          mimeType="audio/wav" 
+          mimeType="audio/wav"
         />
         {blobURL && (
           <div className="mt-4">

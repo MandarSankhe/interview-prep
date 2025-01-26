@@ -7,6 +7,7 @@ const { HfInference } = require("@huggingface/inference");
 const path = require("path");
 const cors = require("cors");
 require("dotenv").config();
+const multer = require("multer");
 
 const hfApi = process.env.HF_API;
 
@@ -21,6 +22,9 @@ const typesArray = loadFilesSync(path.join(__dirname, "./schema"), {
   extensions: ["graphql"]
 });
 const typeDefs = mergeTypeDefs(typesArray);
+
+// Configure Multer for file uploads
+const upload = multer({ storage: multer.memoryStorage() });
 
 // Route for generating feedback
 app.post("/generate-feedback", async (req, res) => {
@@ -37,6 +41,37 @@ app.post("/generate-feedback", async (req, res) => {
   } catch (error) {
     console.error("Error with Hugging Face API:", error);
     res.status(500).json({ error: "Failed to generate feedback." });
+  }
+});
+
+// Route to handle speech-to-text
+app.post("/api/speech-to-text", upload.single("file"), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: "No file uploaded." });
+    }
+
+    const client = new HfInference(hfApi);
+    const audioBuffer = req.file.buffer;
+
+    // Ensure the buffer is a valid WAV file
+    if (!req.file.mimetype.includes("audio")) {
+      return res.status(400).json({ error: "Invalid file type. Please upload an audio file." });
+    }
+
+    const result = await client.automaticSpeechRecognition({
+      data: audioBuffer,
+      model: "facebook/wav2vec2-base-960h",
+    });
+
+    if (result.text) {
+      res.json({ transcription: result.text });
+    } else {
+      res.status(500).json({ error: "Failed to transcribe audio." });
+    }
+  } catch (error) {
+    console.error("Error with Hugging Face API:", error);
+    res.status(500).json({ error: "Failed to process the audio." });
   }
 });
 

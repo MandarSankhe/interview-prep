@@ -1,3 +1,104 @@
+body {
+  font-family: 'Roboto', sans-serif;
+  background-color: #f8f9fa;
+}
+
+.title {
+  font-size: 3.5rem;
+  color: #1a73e8;
+  text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.subtitle {
+  font-size: 2.5rem;
+  color: #17a2b8;
+  margin-bottom: 1rem;
+}
+
+.description {
+  font-size: 1.1rem;
+  max-width: 800px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+/* Button Styles */
+.btn-start, .btn-cta {
+  padding: 15px 30px;
+  font-size: 1.2rem;
+  border-radius: 30px;
+  transition: all 0.3s ease-in-out;
+}
+
+.btn-start:hover, .btn-cta:hover {
+  background-color: #0056b3;
+  transform: scale(1.05);
+}
+
+.btn-primary {
+  background-color: #007bff;
+  border: none;
+}
+
+.btn-success {
+  background-color: #28a745;
+  border: none;
+}
+
+.feature {
+  margin-bottom: 40px;
+}
+
+.feature-image {
+  width: 100%; /* Use the full width of the container */
+  height: auto; /* Maintain the original aspect ratio */
+  object-fit: cover; /* Ensure the image fills the container */
+  border-radius: 0; /* Remove rounded corners if not needed */
+  box-shadow: none; /* Remove shadow for a cleaner look */
+}
+
+@media (max-width: 768px) {
+  .feature-image {
+    margin-bottom: 20px;
+  }
+}
+
+.feature-image:hover {
+  transform: scale(1.1);
+}
+
+.feature-title {
+  font-weight: bold;
+  margin-top: 1rem;
+}
+
+/* Call to Action Section */
+.cta-title {
+  font-size: 2.5rem;
+  color: #28a745;
+  font-weight: 700;
+  margin-bottom: 2rem;
+}
+
+section {
+  padding: 2rem 0;
+}
+
+/* Responsiveness */
+@media (max-width: 768px) {
+  .title {
+    font-size: 2.5rem;
+  }
+
+  .subtitle {
+    font-size: 2rem;
+  }
+
+  .feature-item {
+    margin-bottom: 2rem;
+  }
+}
+
 .App {
   text-align: center;
 }
@@ -35,4 +136,31 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+.mycolour {
+  color: #364da8;
+}
+
+.custom-button {
+  background-color: #364da8; /* Green */
+  color: white;
+  border: none;
+}
+
+.custom-button:hover {
+  background-color: #45a049; /* Darker Green */
+}
+
+.pie-chart {
+  width: 100%;
+  max-width: 120px;  /* Adjust the size of the pie chart */
+  height: auto;
+  margin: 0 auto; /* Center the chart */
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
 }
