@@ -1,0 +1,1 @@
+Please NPM INSTALL & NPM START both backend and frontend directories
