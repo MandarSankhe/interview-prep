@@ -1,0 +1,125 @@
+# schema.graphql
+
+type Mutation {
+  createUser(input: UserInput!): User
+  createMcqTestExercise(input: McqTestInput!): McqTest
+  createScore(input: ScoreInput!): Score
+  login(email: String!, password: String!): User
+  createCodeInterview(input: CodeInterviewInput!): CodeInterview
+}
+
+input UserInput {
+  username: String!
+  email: String!
+  password: String!
+  languageLevel: String
+}
+
+type User {
+  id: ID!
+  username: String!
+  email: String!
+  languageLevel: String
+  progress: Progress!
+  createdAt: String!
+}
+
+type Progress {
+  reading: Int
+  writing: Int
+  listening: Int
+  speaking: Int
+}
+
+# Simplified MCQTest type
+type McqTest {
+  id: ID!
+  title: String!
+  documents: [DocumentSet!]!
+  level: String!
+  createdAt: String!
+}
+
+type DocumentSet {
+  document: Document!
+  questions: [Question!]!
+}
+
+type Document {
+  title: String!
+  type: String!
+  content: String!
+}
+
+type Question {
+  questionText: String!
+  options: [String!]!
+  correctAnswer: String!
+}
+
+input McqTestInput {
+  title: String!
+  documents: [DocumentInput!]!
+  level: String!
+}
+
+input DocumentInput {
+  title: String!
+  type: String!
+  content: String!
+  questions: [QuestionInput!]!
+}
+
+input QuestionInput {
+  questionText: String!
+  options: [String!]!
+  correctAnswer: String!
+}
+
+type Content {
+  text: String
+  audioUrl: String
+}
+
+# Simplified CodeInterview Types
+type CodeInterview {
+  id: ID!
+  title: String!
+  level: String!
+  challenge1: String!
+  challenge2: String!
+  challenge3: String!
+  createdAt: String!
+}
+
+input CodeInterviewInput {
+  title: String!
+  level: String!
+  challenge1: String!
+  challenge2: String!
+  challenge3: String!
+}
+
+input ScoreInput {
+  exerciseId: ID!
+  type: String!
+  score: Int!
+}
+
+type Score {
+  id: ID!
+  exerciseId: ID!
+  type: String!
+  score: Int!
+  attemptDate: String!
+}
+
+
+type Query {
+  users: [User]
+  mcqTestsByLevel(level: String!): [McqTest]
+  mcqTests: [McqTest]
+  scores: [Score]
+  codeInterviews: [CodeInterview]
+  codeInterviewsByLevel(level: String!): [CodeInterview]
+}
