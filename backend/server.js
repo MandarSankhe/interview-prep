@@ -8,8 +8,10 @@ const path = require("path");
 const cors = require("cors");
 require("dotenv").config();
 const multer = require("multer");
+const {Together} =  require("together-ai");
 
 const hfApi = process.env.HF_API;
+const together = new Together();
 
 // Initialize Express app
 const app = express();
@@ -26,25 +28,176 @@ const typeDefs = mergeTypeDefs(typesArray);
 // Configure Multer for file uploads
 const upload = multer({ storage: multer.memoryStorage() });
 
-// Route for generating feedback
+/**
+ * Endpoint: /generate-feedback
+ * (Unchanged)
+ */
 app.post("/generate-feedback", async (req, res) => {
   try {
     const { prompt } = req.body;
-    const client = new HfInference(hfApi);
-    const chatCompletion = await client.chatCompletion({
-      //model: "Qwen/QwQ-32B-Preview",
-      model: "Qwen/Qwen2.5-Coder-32B-Instruct",
-      messages: [{ role: "user", content: prompt }],
-      max_tokens: 1000
+    
+    const response = await together.chat.completions.create({
+      messages: [
+        {
+          role: "system",
+          content: prompt
+        }
+      ],
+      model: "meta-llama/Llama-Vision-Free",
+      max_tokens: 2000,
+      temperature: 0.7,
+      top_p: 0.7,
+      top_k: 50,
+      repetition_penalty: 1,
+      stop: ["<|eot_id|>", "<|eom_id|>"],
+      stream: true
     });
-    res.json({ feedback: chatCompletion.choices[0].message.content.replace(/\n/g, "<br>") });
+    
+    // Accumulate tokens into a string
+    let feedback = "";
+    for await (const token of response) {
+      feedback += token.choices[0]?.delta?.content;
+    }
+    res.json({ feedback : feedback.replace(/\n/g, "<br>") });
+    
   } catch (error) {
-    console.error("Error with Hugging Face API:", error);
+    console.error("Error with Together AI API:", error);
     res.status(500).json({ error: "Failed to generate feedback." });
   }
 });
 
-// Route to handle speech-to-text
+
+/**
+ * Endpoint: /api/initial-question
+ * This endpoint generates the very first interview question.
+ * It instructs the AI (via a system prompt) that it is a software developer interviewer.
+ * It then converts the text to speech using a Hugging Face TTS model.
+ */
+app.post("/api/initial-question", async (req, res) => {
+  try {
+     const client = new HfInference(hfApi);
+    // // Generate the initial interview question with instructions
+    // const chatCompletion = await client.chatCompletion({
+    //   model: "Qwen/Qwen2.5-Coder-32B-Instruct",
+    //   messages: [
+    //     { role: "system", 
+    //       content: "You are a software developer interviewer. Ask your very first Job interview question to start the interview. Start with basic personal questions like professional interview" }
+    //   ],
+    //   provider: "nebius",
+    //   max_tokens: 200,
+    // });
+    // const question = chatCompletion.choices[0].message.content;
+
+    const response = await together.chat.completions.create({
+      messages: [
+        {
+          role: "system",
+          content: "You are a software developer interviewer. Ask your very first Job interview question to start the interview. Start with basic personal questions like professional interview"
+        }
+      ],
+      model: "meta-llama/Llama-Vision-Free",
+      max_tokens: 2000,
+      temperature: 0.7,
+      top_p: 0.7,
+      top_k: 50,
+      repetition_penalty: 1,
+      stop: ["<|eot_id|>", "<|eom_id|>"],
+      stream: true
+    });
+    
+    // Accumulate tokens into a string
+    let feedback = "";
+    for await (const token of response) {
+      feedback += token.choices[0]?.delta?.content;
+    }
+    
+    const question = feedback.replace(/\n/g, " ...");
+    console.log("completed first part ", question);
+
+    // Convert the question to speech using a TTS model
+    // (Assuming that client.textToSpeech returns a Buffer)
+    const ttsResult = await client.textToSpeech({
+      model: "espnet/kan-bayashi_ljspeech_vits", // Use an appropriate TTS model
+      inputs: question.replace("undefined", " ..."),
+    });
+    // Convert Blob to ArrayBuffer then to Buffer
+    const arrayBuffer = await ttsResult.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    const audioBase64 = buffer.toString("base64");
+
+
+    res.json({ question, audio: audioBase64 });
+  } catch (error) {
+    console.error("Error generating initial question:", error);
+    res.status(500).json({ error: "Failed to generate initial question." });
+  }
+});
+
+/**
+ * Endpoint: /api/ai-response
+ * Modified to include a system instruction for a software developer interview.
+ * It now converts the AI’s response to speech.
+ */
+app.post("/api/ai-response", async (req, res) => {
+  try {
+    const { prompt } = req.body;
+    const client = new HfInference(hfApi);
+    // const chatCompletion = await client.chatCompletion({
+    //   model: "Qwen/Qwen2.5-Coder-32B-Instruct",
+    //   messages: [
+    //     { role: "system", content: "You are a software developer interviewer. After the candidate answers, ask a follow-up question related to their answer." },
+    //     { role: "user", content: prompt }
+    //   ],
+    //   provider: "nebius",
+    //   max_tokens: 350,
+    // });
+    // const aiText = chatCompletion.choices[0].message.content;
+    
+
+    const response = await together.chat.completions.create({
+      messages: [
+        {
+          role: "system",
+          content: prompt
+        }
+      ],
+      model: "meta-llama/Llama-Vision-Free",
+      max_tokens: 2000,
+      temperature: 0.7,
+      top_p: 0.7,
+      top_k: 50,
+      repetition_penalty: 1,
+      stop: ["<|eot_id|>", "<|eom_id|>"],
+      stream: true
+    });
+    
+    // Accumulate tokens into a string
+    let feedback = "";
+    for await (const token of response) {
+      feedback += token.choices[0]?.delta?.content;
+    }
+    const aiText = feedback.replace(/\n/g, " ...");
+
+    // Convert AI text to speech
+    const ttsResult = await client.textToSpeech({
+      model: "espnet/kan-bayashi_ljspeech_vits",
+      inputs: aiText.replace("undefined", " ..."),
+    });
+    const arrayBuffer = await ttsResult.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    const audioBase64 = buffer.toString("base64");
+
+    res.json({ response: aiText, audio: audioBase64 });
+  } catch (error) {
+    console.error("Error with Hugging Face API:", error);
+    res.status(500).json({ error: "Failed to generate AI response." });
+  }
+});
+
+/**
+ * Endpoint: /api/speech-to-text
+ * (Unchanged)
+ */
 app.post("/api/speech-to-text", upload.single("file"), async (req, res) => {
   try {
     if (!req.file) {
@@ -54,18 +207,17 @@ app.post("/api/speech-to-text", upload.single("file"), async (req, res) => {
     const client = new HfInference(hfApi);
     const audioBuffer = req.file.buffer;
 
-    // Ensure the buffer is a valid WAV file
     if (!req.file.mimetype.includes("audio")) {
       return res.status(400).json({ error: "Invalid file type. Please upload an audio file." });
     }
 
     const result = await client.automaticSpeechRecognition({
       data: audioBuffer,
-      model: "facebook/wav2vec2-base-960h",
+      model: "openai/whisper-large-v3-turbo",
     });
 
     if (result.text) {
-      res.json({ transcription: result.text });
+      res.json({ text: result.text });
     } else {
       res.status(500).json({ error: "Failed to transcribe audio." });
     }
@@ -74,7 +226,6 @@ app.post("/api/speech-to-text", upload.single("file"), async (req, res) => {
     res.status(500).json({ error: "Failed to process the audio." });
   }
 });
-
 
 async function startServer() {
   const server = new ApolloServer({
@@ -109,8 +260,6 @@ async function startServer() {
     console.log(`Server running at http://localhost:${PORT}/graphql`);
   });
 }
-
-
 
 startServer().catch((err) => console.log(err));
 
