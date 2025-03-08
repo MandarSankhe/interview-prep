@@ -114,6 +114,15 @@ type Score {
   attemptDate: String!
 }
 
+type TCFSpeaking {
+  id: ID!
+  topic: String!
+  mainQuestion1: String!
+  mainQuestion2: String!
+  mainQuestion3: String!
+  createdAt: String!
+}
+
 
 type Query {
   users: [User]
@@ -122,4 +131,5 @@ type Query {
   scores: [Score]
   codeInterviews: [CodeInterview]
   codeInterviewsByLevel(level: String!): [CodeInterview]
+  tcfSpeakings: [TCFSpeaking]!
 }

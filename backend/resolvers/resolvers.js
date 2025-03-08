@@ -5,6 +5,7 @@ const User = require("../models/User");
 const McqTest = require("../models/mcqTest");
 const CodeInterview = require("../models/WritingCode");
 const Score = require("../models/Score");
+const TCFSpeaking = require("../models/TCFSpeaking");
 
 const resolvers = {
   Query: {
@@ -54,6 +55,16 @@ const resolvers = {
       } catch (error) {
         console.error("Error fetching code interviews by level:", error);
         throw new Error("Failed to fetch code interviews by level");
+      }
+    },
+
+    // Fetch all speaking topics
+    tcfSpeakings: async () => {
+      try {
+        return await TCFSpeaking.find();
+      } catch (error) {
+        console.error("Error fetching speaking topics:", error);
+        throw new Error("Failed to fetch speaking topics");
       }
     },
 
