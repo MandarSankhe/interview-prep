@@ -74,7 +74,7 @@ const Speech = () => {
         }
       `;
       try {
-        const res = await fetch("http://localhost:4000/graphql", {
+        const res = await fetch("https://yj74ormpuc.execute-api.us-east-1.amazonaws.com/api/graphql", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ query }),
@@ -102,63 +102,12 @@ const Speech = () => {
     setFinalFeedback("");
   };
 
-  // Auto-play latest AI audio using hidden <audio>
-  useEffect(() => {
-    const latestAIMessage = conversationHistory
-      .filter((msg) => msg.role === "ai" && msg.audio)
-      .slice(-1)[0];
-
-    if (latestAIMessage && latestAIMessage.id !== lastPlayedAudioId && audioRef.current) {
-      // If audio is already playing, don't interrupt it.
-      if (!audioRef.current.paused) return;
-
-      audioRef.current.src = latestAIMessage.audio;
-      audioRef.current
-        .play()
-        .then(() => setLastPlayedAudioId(latestAIMessage.id))
-        .catch((err) => console.warn("Auto-play failed:", err));
-    }
-  }, [conversationHistory, lastPlayedAudioId]);
-
-  // Attach audio "ended" event listener only once
-  useEffect(() => {
-    const audioElement = audioRef.current;
-
-    const handleAudioEnded = async () => {
-      // Determine if the latest AI audio was an evaluation response.
-      const latestAIMessage = conversationHistory
-        .filter((msg) => msg.role === "ai" && msg.audio)
-        .slice(-1)[0];
-
-      if (followupCountRef.current >= 3) {
-        console.log("Final question completed", followupCountRef.current);
-        if (currentMainQuestionRef.current < 3) {
-          console.log("Moving to next main question", currentMainQuestionRef.current);
-          currentMainQuestionRef.current += 1;
-          followupCountRef.current = 0;
-          setFollowupCount(0);
-          await fetchDBQuestion(currentMainQuestionRef.current);
-        } else {
-          handleFinishTest(); // Final question completed
-        }
-      }
-    };
-
-    if (audioElement) {
-      audioElement.addEventListener("ended", handleAudioEnded);
-    }
-    return () => {
-      if (audioElement) audioElement.removeEventListener("ended", handleAudioEnded);
-    };
-    // Empty dependency array so the listener is attached only once.
-  }, []);
-
   // Fetch DB question from TCFSpeaking given mainQuestion number
   const fetchDBQuestion = async (mainQNumber) => {
     console.log("Fetching DB question for mainQNumber:", mainQNumber);
     setIsLoading(true);
     try {
-      const res = await fetch("http://localhost:4000/api/initial-question", {
+      const res = await fetch("https://yj74ormpuc.execute-api.us-east-1.amazonaws.com/api/initial-question", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ topic: selectedExam.topic, questionNumber: mainQNumber }),
@@ -184,6 +133,47 @@ const Speech = () => {
       console.error("Error fetching DB question:", err);
     }
     setIsLoading(false);
+  };
+
+  // Auto-play latest AI audio using hidden <audio>
+  useEffect(() => {
+    const latestAIMessage = conversationHistory
+      .filter((msg) => msg.role === "ai" && msg.audio)
+      .slice(-1)[0];
+
+    if (latestAIMessage && latestAIMessage.id !== lastPlayedAudioId && audioRef.current) {
+      // If audio is already playing, don't interrupt it.
+      if (!audioRef.current.paused) return;
+
+      audioRef.current.src = latestAIMessage.audio;
+      audioRef.current
+        .play()
+        .then(() => setLastPlayedAudioId(latestAIMessage.id))
+        .catch((err) => console.warn("Auto-play failed:", err));
+    }
+  }, [conversationHistory, lastPlayedAudioId]);
+
+  // Handle audio ended event directly through JSX onEnded attribute
+  const handleAudioEnded = async () => {
+    // Optionally, you can log or use the latest AI message if needed
+    const latestAIMessage = conversationHistory
+      .filter((msg) => msg.role === "ai" && msg.audio)
+      .slice(-1)[0];
+
+    console.log("Audio ended. Followup count:", followupCountRef.current);
+    console.log("Current main question:", currentMainQuestionRef.current);
+    if (followupCountRef.current >= 3) {
+      console.log("Final question completed", followupCountRef.current);
+      if (currentMainQuestionRef.current < 3) {
+        console.log("Moving to next main question", currentMainQuestionRef.current);
+        currentMainQuestionRef.current += 1;
+        followupCountRef.current = 0;
+        setFollowupCount(0);
+        await fetchDBQuestion(currentMainQuestionRef.current);
+      } else {
+        handleFinishTest(); // Final question completed
+      }
+    }
   };
 
   // Start Conversation Screen
@@ -270,7 +260,7 @@ const Speech = () => {
       const formData = new FormData();
       formData.append("file", recordedBlob.blob);
 
-      const speechResponse = await fetch("http://localhost:4000/api/speech-to-text", {
+      const speechResponse = await fetch("https://yj74ormpuc.execute-api.us-east-1.amazonaws.com/api/speech-to-text", {
         method: "POST",
         body: formData,
       });
@@ -287,7 +277,7 @@ const Speech = () => {
         setConversationHistory((prev) => [...prev, userMessage]);
 
         // Get AI evaluation after user answer
-        const aiResponseRes = await fetch("http://localhost:4000/api/ai-response-to-speech", {
+        const aiResponseRes = await fetch("https://yj74ormpuc.execute-api.us-east-1.amazonaws.com/api/ai-response-to-speech", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -558,7 +548,7 @@ const Speech = () => {
           </div>
         </div>
       )}
-      <audio ref={audioRef} style={{ display: "none" }} />
+      <audio ref={audioRef} onEnded={handleAudioEnded} style={{ display: "none" }} />
     </div>
   );
 };

@@ -43,7 +43,7 @@ const WritingMock = () => {
         }
       `;
       try {
-        const res = await fetch("http://localhost:4000/graphql", {
+        const res = await fetch("https://yj74ormpuc.execute-api.us-east-1.amazonaws.com/api/graphql", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ query }),
@@ -84,7 +84,7 @@ const WritingMock = () => {
         and give the score out of 10
       `;
   
-      const res = await fetch("http://localhost:4000/generate-feedback", {
+      const res = await fetch("https://yj74ormpuc.execute-api.us-east-1.amazonaws.com/api/generate-feedback", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

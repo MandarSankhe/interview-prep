@@ -8,7 +8,7 @@ import "./App.css"
 import { ApolloProvider, ApolloClient, InMemoryCache } from "@apollo/client";
 
 const client = new ApolloClient({
-  uri: "http://localhost:4000/graphql",
+  uri: "https://yj74ormpuc.execute-api.us-east-1.amazonaws.com/api/graphql",
   cache: new InMemoryCache(),
 });
 

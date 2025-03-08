@@ -37,7 +37,7 @@ async function loadGradioClient() {
  * Route: /generate-feedback
  * Generates feedback for the software developer interview answer.
  */
-app.post("/generate-feedback", async (req, res) => {
+app.post("/api/generate-feedback", async (req, res) => {
   try {
     const { prompt } = req.body;
     const response = await together.chat.completions.create({
@@ -254,7 +254,7 @@ async function startServer() {
   });
 
   await server.start();
-  server.applyMiddleware({ app, path: "/graphql" });
+  server.applyMiddleware({ app, path: "/api/graphql" });
 
   const PORT = process.env.PORT || 4000;
 
@@ -276,9 +276,12 @@ async function startServer() {
   }
   await connectToDatabase();
 
-  app.listen(PORT, () => {
-    console.log(`Server running at http://localhost:${PORT}/graphql`);
-  });
+  // app.listen(PORT, () => {
+  //   console.log(`Server running at http://localhost:${PORT}/graphql`);
+  // });
 }
 
 startServer().catch((err) => console.log(err));
+
+// Export the app for AWS Lambda
+module.exports = app;
