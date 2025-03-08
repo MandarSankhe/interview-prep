@@ -130,8 +130,10 @@ const Speech = () => {
         .filter((msg) => msg.role === "ai" && msg.audio)
         .slice(-1)[0];
 
-      if (latestAIMessage?.type === "evaluation" && followupCountRef.current >= 2) {
+      if (followupCountRef.current >= 3) {
+        console.log("Final question completed", followupCountRef.current);
         if (currentMainQuestionRef.current < 3) {
+          console.log("Moving to next main question", currentMainQuestionRef.current);
           currentMainQuestionRef.current += 1;
           followupCountRef.current = 0;
           setFollowupCount(0);
@@ -153,6 +155,7 @@ const Speech = () => {
 
   // Fetch DB question from TCFSpeaking given mainQuestion number
   const fetchDBQuestion = async (mainQNumber) => {
+    console.log("Fetching DB question for mainQNumber:", mainQNumber);
     setIsLoading(true);
     try {
       const res = await fetch("http://localhost:4000/api/initial-question", {
@@ -174,7 +177,6 @@ const Speech = () => {
           role: "ai",
           text: data.question,
           audio: audioUrl,
-          type: "db", // Mark this as a DB question
         };
         setConversationHistory((prev) => [...prev, aiMessage]);
       }
@@ -303,11 +305,11 @@ const Speech = () => {
             role: "ai",
             text: aiData.response,
             audio: aiData.audio.data[0].url,
-            type: "evaluation", // Mark as evaluation response
           };
           setConversationHistory((prev) => [...prev, aiMessage]);
 
           // Update followup count
+          console.log("Followup count increasing:", followupCountRef.current);
           followupCountRef.current += 1;
           setFollowupCount(followupCountRef.current);
         } else {

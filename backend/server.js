@@ -173,12 +173,24 @@ app.post("/api/ai-response-to-speech", async (req, res) => {
     } else {
       difficulty = "advanced";
     }
-    const feedbackPrompt = `You are a technical interviewer for a software developer role.
+    
+    // Change the prompt based on followupCount: include follow-up question when followupCount < 2,
+    // otherwise just end the current question with feedback.
+    let feedbackPrompt = "";
+    if (followupCount < 2) {
+      feedbackPrompt = `You are a technical interviewer for a software developer role.
 The topic is: "${topic}". For the candidate's answer: "${prompt}",
 provide concise feedback in at most two sentences without mentioning if the answer is vague.
 Always end with a follow-up technical question related to this topic.
 The difficulty level is ${difficulty}.`;
-    
+    } else {
+      feedbackPrompt = `You are a technical interviewer for a software developer role.
+The topic is: "${topic}". For the candidate's answer: "${prompt}",
+provide concise feedback in at most two sentences that comprehensively concludes the current question,
+without including any follow-up technical question.
+The difficulty level is ${difficulty}.`;
+    }
+
     await loadGradioClient();
     const response = await together.chat.completions.create({
       messages: [{ role: "system", content: feedbackPrompt }],
