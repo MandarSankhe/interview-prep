@@ -3,14 +3,17 @@ version: 0.2
 phases:
   install:
     commands:
-      - echo "Changing directory to backend and installing dependencies"
       - cd backend
-      - npm install --force
+      - npm install
   build:
     commands:
-      - echo "Packaging Lambda deployment package"
-      # Create a zip file of all files inside the backend folder.
+      - echo "Zipping up Lambda code..."
       - zip -r ../backend-deploy.zip .
+      - echo "Deploying Lambda code to AWS..."
+      - aws lambda update-function-code \
+          --function-name interviewprep \
+          --zip-file fileb://../backend-deploy.zip \
+          --region us-east-1
 artifacts:
   files:
     - backend-deploy.zip
