@@ -1,0 +1,16 @@
+version: 0.2
+
+phases:
+  install:
+    commands:
+      - echo "Changing directory to backend and installing dependencies"
+      - cd backend
+      - npm install --force
+  build:
+    commands:
+      - echo "Packaging Lambda deployment package"
+      # Create a zip file of all files inside the backend folder.
+      - zip -r ../backend-deploy.zip .
+artifacts:
+  files:
+    - backend-deploy.zip
