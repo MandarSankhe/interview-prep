@@ -4,7 +4,7 @@ phases:
   install:
     commands:
       - cd backend
-      - npm install --force
+      - npm install
   build:
     commands:
       - echo "Zipping up Lambda code..."
