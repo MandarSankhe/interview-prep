@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import { useMutation, gql } from "@apollo/client";
 import { useNavigate } from "react-router-dom";
+import LoadingSpinner from "./LoadingSpinner"; // Import the spinner
 
 const CREATE_USER_MUTATION = gql`
   mutation CreateUser($input: UserInput!) {
@@ -22,7 +23,7 @@ const Register = () => {
     languageLevel: "Beginner",
   });
 
-  const [createUser] = useMutation(CREATE_USER_MUTATION);
+  const [createUser, { loading }] = useMutation(CREATE_USER_MUTATION);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -42,9 +43,10 @@ const Register = () => {
   };
 
   return (
-    <div className="container mt-5">
+    <div className="container mt-5" style={{ position: "relative" }}>
+      {loading && <LoadingSpinner />}
       <h2>Register</h2>
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} style={{ opacity: loading ? 0.5 : 1 }}>
         <div className="mb-3">
           <label htmlFor="username" className="form-label">
             Username
@@ -103,7 +105,7 @@ const Register = () => {
             <option value="Advanced">Advanced</option>
           </select>
         </div>
-        <button type="submit" className="btn btn-primary">
+        <button type="submit" className="btn btn-primary" disabled={loading}>
           Register
         </button>
       </form>

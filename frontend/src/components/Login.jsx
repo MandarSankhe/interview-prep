@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { gql, useMutation } from "@apollo/client";
+import LoadingSpinner from "./LoadingSpinner"; // Import the spinner
 
 const LOGIN_MUTATION = gql`
   mutation Login($email: String!, $password: String!) {
@@ -19,7 +20,7 @@ const Login = () => {
   const [formData, setFormData] = useState({ email: "", password: "" });
   const { login } = useAuth();
   const navigate = useNavigate();
-  const [loginMutation] = useMutation(LOGIN_MUTATION);
+  const [loginMutation, { loading }] = useMutation(LOGIN_MUTATION);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -47,9 +48,10 @@ const Login = () => {
   };
 
   return (
-    <div className="container mt-5">
+    <div className="container mt-5" style={{ position: "relative" }}>
+      {loading && <LoadingSpinner />}
       <h2>Login</h2>
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} style={{ opacity: loading ? 0.5 : 1 }}>
         <div className="mb-3">
           <label htmlFor="email" className="form-label">
             Email address
@@ -78,7 +80,7 @@ const Login = () => {
             required
           />
         </div>
-        <button type="submit" className="btn btn-primary">
+        <button type="submit" className="btn btn-primary" disabled={loading}>
           Login
         </button>
       </form>
