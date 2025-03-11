@@ -277,7 +277,7 @@ async function startServer() {
   await connectToDatabase();
 
   // app.listen(PORT, () => {
-  //   console.log(`Server running at http://localhost:${PORT}/graphql`); test
+  //   console.log(`Server running at http://localhost:${PORT}/graphql`);
   // });
 }
 
